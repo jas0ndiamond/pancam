@@ -1,0 +1,16 @@
+{
+	"hat_addr": "0x40",
+	"pwm_freq": 60,
+	"servox": {
+		"id": 0,
+		"min": 200,
+		"max": 380,
+		"home": 320
+	},
+	"servoy": {
+		"id": 1,
+		"min": 230,
+		"max": 470,
+		"home": 330
+	}
+}
