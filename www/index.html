@@ -1,0 +1,400 @@
+<html>
+<head>
+<title>Pancam!</title>
+</head>
+
+<meta charset="utf-8">
+<link rel="stylesheet"
+	href="www/jquery-ui-1.12.1.custom/jquery-ui.min.css">
+<script type="text/javascript" src="www/jquery-3.2.1.min.js"></script>
+<script type="text/javascript"
+	src="www/jquery-ui-1.12.1.custom/jquery-ui.min.js"></script>
+
+<script type="text/javascript">
+
+function updatePosition()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/get_pos",
+        dataType: 'json',
+        async: false,
+        success: function(data) {
+            $("#xPos").html(data["xPos"]);
+            $("#yPos").html(data["yPos"]);
+
+        },
+        error: function() {
+            alert("Error loading camera position");
+        }
+    });
+}
+
+function moveLeft()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/left",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveRight()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/right",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveDown()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/down",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveUp()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/up",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveHome()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/home",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function panTo()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/pan_to",
+        dataType: 'json',
+		data: {
+			xPos: $("#newX").val(),
+			yPos: $("#newY").val(),
+		},
+        async: false
+    });
+    
+    updatePosition();
+    
+    $("#newX").val('');
+    $("#newY").val('');
+}
+
+function moveTo()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/move_to",
+        dataType: 'json',
+		data: {
+			xPos: $("#newX").val(),
+			yPos: $("#newY").val(),
+		},
+        async: false
+    });
+    
+    updatePosition();
+    
+    $("#newX").val('');
+    $("#newY").val('');
+}
+
+function stop()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/stop",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+//---------------------------------------------------------------------------------------------
+
+$(document).ready(function() {
+
+    //grab current x and y and update
+
+	updatePosition();
+
+    $(".widget button").button();
+    $("#moveUpLeft").click(
+        function() {
+            moveLeft();
+            moveUp();
+        }
+    );
+    $("#moveUp").click(
+        function() {
+            moveUp();
+        }
+    );
+    $("#moveUpRight").click(
+        function() {
+            moveRight();
+            moveUp();
+        }
+    );
+    $("#moveLeft").click(
+        function() {
+            moveLeft();
+        }
+    );
+    $("#moveHome").click(
+        function() {
+            moveHome();
+        }
+    );
+    $("#moveRight").click(
+        function() {
+            moveRight();
+        }
+    );
+    $("#moveDownLeft").click(
+        function() {
+            moveLeft();
+            moveDown();
+        }
+    );
+    $("#moveDown").click(
+        function() {
+            moveDown();
+        }
+    );
+    $("#moveDownRight").click(
+        function() {
+            moveRight();
+            moveDown();
+        }
+    );
+    
+    $("#panTo").click(
+            function() {
+				panTo();
+            }
+        );
+    
+    $("#moveTo").click(
+            function() {
+				moveTo();
+            }
+        );
+
+    $("#xPanSlider").slider({
+        value: 10,
+        min: 10,
+        max: 30,
+        step: 5,
+        slide: function(event, ui) {
+            $("#xPanValue").html(ui.value);
+
+            //request to update pan inc
+            $.ajax({
+        		type: "get",
+        		url: "/pancam/set_x_pan_inc",
+        		data: {
+        			inc: ui.value
+        		},
+        		dataType: 'json',
+        		async: false
+            });
+        }
+    });
+    $("#xPanValue").html($('#xPanSlider').slider('value'));
+    
+    $("#yPanSlider").slider({
+        value: 10,
+        min: 10,
+        max: 30,
+        step: 5,
+        slide: function(event, ui) {
+            $("#yPanValue").html(ui.value);
+
+            //request to update pan inc
+            $.ajax({
+        		type: "get",
+        		url: "/pancam/set_y_pan_inc",
+        		data: {
+        			inc: ui.value
+        		},
+        		dataType: 'json',
+        		async: false
+            });
+        }
+    });
+    $("#yPanValue").html($('#yPanSlider').slider('value'));
+
+    $("#viewType").selectmenu({
+        change: function(event, ui) {
+            optSelected = $(this).val();
+            if (optSelected == "mjpeg-streamer") {
+                $("#display").html('<img src="http://pancam:8080/?action=stream" />');
+            } else if (optSelected == "v4l2-rtsp") {
+                window.open('rtsp://pancam:8554/unicast');
+            } else {
+                //hide everything
+                $("#display").html();
+            }
+        }
+    });
+
+});
+
+
+    </script>
+
+<body>
+	<table style="width: 800px;" border="5">
+
+		<tr>
+			<td id="controlPanel" style="width: 150px; vertical-align: text-top">
+
+				<table style="width: 150px;" border="1">
+					<tr>
+						<td style="height: 50px; width: 50px">
+							<div style="text-align: center;">Pos:</div>
+						</td>
+						<td style="height: 50px; width: 50px">
+							<div id="xPos" style="text-align: center;"></div>
+						</td>
+						<td style="height: 50px; width: 50px">
+							<div id="yPos" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td style="height: 50px; width: 50px" colspan="3"></td>
+					</tr>
+					<tr>
+						<td>
+							<button id="moveUpLeft" style="height: 50px; width: 50px">&#x25E4;</button>
+						</td>
+						<td>
+							<button id="moveUp" style="height: 50px; width: 50px">&#x25B2;</button>
+						</td>
+						<td>
+							<button id="moveUpRight" style="height: 50px; width: 50px">&#x25E5;</button>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<button id="moveLeft" style="height: 50px; width: 50px">
+								&#x25C0;</button>
+						</td>
+						<td>
+							<button id="moveHome" style="height: 50px; width: 50px">&#x25A0;</button>
+						</td>
+						<td>
+							<button id="moveRight" style="height: 50px; width: 50px">&#x25B6;</button>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<button id="moveDownLeft" style="height: 50px; width: 50px">&#x25E3;</button>
+						</td>
+						<td>
+							<button id="moveDown" style="height: 50px; width: 50px">&#x25BC;</button>
+						</td>
+						<td>
+							<button id="moveDownRight" style="height: 50px; width: 50px">&#x25E2;</button>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" style="height: 50px; width: 100px">
+							<div id="xPanSlider"></div>
+						</td>
+						<td style="height: 50px; width: 50px;">
+							<div id="xPanValue" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" style="height: 50px; width: 100px">
+							<div id="yPanSlider"></div>
+						</td>
+						<td style="height: 50px; width: 50px;">
+							<div id="yPanValue" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td style="height: 50px; width: 50px" colspan="3"></td>
+					</tr>
+					<tr>
+						<td colspan="3" style="height: 50px; width: 150px">
+							<table style="height: 50px; width: 150px;" border="1">
+								<tr>
+									<td style="height: 50px; width: 75px;"><label for="newX">X:</label>
+										<input id="newX" style="width: 35px;"></td>
+									<td style="height: 50px; width: 75px;"><label for="newX">Y:</label>
+										<input id="newY" style="width: 35px;"></td>
+								</tr>
+							</table>
+						</td>
+
+					</tr>
+					<tr>
+						<td>
+							<button id="panTo" style="height: 50px; width: 50px">Pan</button>
+						</td>
+						<td>
+							<button id="moveTo" style="height: 50px; width: 50px">Move</button>
+						</td>
+						<td>
+							<button id="stop" style="height: 50px; width: 50px">Stop</button>
+						</td>
+					</tr>
+				</table>
+
+
+
+			</td>
+			<td id="displayPanel" border="1"><select id="viewType">
+					<option disabled selected>Choose</option>
+					<option>mjpeg-streamer</option>
+					<option>v4l2-rtsp</option>
+					<option>none</option>
+			</select>
+				<div id="display" style="width: 640px; height: 480px"></div></td>
+		</tr>
+
+	</table>
+
+
+
+
+
+
+
+
+
+</body>
+</html>
