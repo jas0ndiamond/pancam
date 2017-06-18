@@ -1,9 +1,8 @@
 import sys
 import re
-import os
 from Pancam import Pancam
 
-conf_file = "config.json"
+conf_file = "conf/config.json"
     
     
 # if(len(sys.argv) == 2)
@@ -31,24 +30,24 @@ def main(sys):
     
     #     while (True):
     #         # Change speed of continuous servo on channel O
-    # #         pancam.pan_to(0, servo_x_min_pos)
+    # #         pancam.move_to(0, servo_x_min_pos)
     # #         time.sleep(1)
     # #         
-    # #         pancam.pan_to(0, servo_x_home_pos )
+    # #         pancam.move_to(0, servo_x_home_pos )
     # #         time.sleep(1)
     # #         
-    # #         pancam.pan_to(0, servo_x_max_pos)
+    # #         pancam.move_to(0, servo_x_max_pos)
     # #         time.sleep(1)
     # #         
-    # #         pancam.pan_to(0, servo_x_home_pos )
+    # #         pancam.move_to(0, servo_x_home_pos )
     # #         time.sleep(1)
     #         pos = servo_y_min_pos
     #         while(pos < servo_y_max_pos):
-    #             pancam.pan_to(1, pos)
+    #             pancam.move_to(1, pos)
     #             pos += 10
     #             
     #         while(pos > servo_y_min_pos):
-    #             pancam.pan_to(1, pos)
+    #             pancam.move_to(1, pos)
     #             pos -= 10
                 
         
@@ -65,22 +64,22 @@ def main(sys):
             #pancam.shutdown()
             runshell = False
         elif(line == "xhome\n"):
-            pancam.pan_x_home()
+            pancam.move_x_home()
         elif(line == "yhome\n"):
-            pancam.pan_y_home()
+            pancam.move_y_home()
         elif(line == "home\n"):
-            pancam.pan_home()
+            pancam.move_home()
         elif(line == "p r\n"):
-            pancam.pan_right()
+            pancam.move_right()
         elif(line == "p l\n"):
-            pancam.pan_left()
+            pancam.move_left()
         elif(line == "p u\n"):
-            pancam.pan_up()
+            pancam.move_up()
         elif(line == "p d\n"):
-            pancam.pan_down()
+            pancam.move_down()
         elif( matcher.match(line) ):
             servo_num, servo_pos = line.split(" ")
-            pancam.pan_to(int(servo_num), int(servo_pos))
+            pancam.move_to(int(servo_num), int(servo_pos))
         else:
             print("Malformed move command")
     
