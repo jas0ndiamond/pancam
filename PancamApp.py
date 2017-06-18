@@ -1,10 +1,12 @@
 from flask import Flask, redirect, request
-app = Flask(__name__)
+
 
 import sys
 import os
 import json
 from Pancam import Pancam
+
+app = Flask(__name__, static_url_path='/www', static_folder=os.path.dirname(__file__) + "/www")
 
 conf_file = os.path.dirname(__file__) + "/conf/config.json"
     
@@ -18,6 +20,8 @@ data = json.loads(json_data)
     
 hat_addr = data["hat_addr"]
 pwm_freq = data["pwm_freq"]
+
+pancam_page = open(os.path.dirname(__file__) + "/www/index.html").read()
 
 #x
 #min -> left
@@ -44,24 +48,24 @@ pancam.set_y_servo(servo_y_id, servo_y_min_pos, servo_y_max_pos, servo_y_home_po
     
     #     while (True):
     #         # Change speed of continuous servo on channel O
-    # #         pancam.pan_to(0, servo_x_min_pos)
+    # #         pancam.move_to(0, servo_x_min_pos)
     # #         time.sleep(1)
     # #         
-    # #         pancam.pan_to(0, servo_x_home_pos )
+    # #         pancam.move_to(0, servo_x_home_pos )
     # #         time.sleep(1)
     # #         
-    # #         pancam.pan_to(0, servo_x_max_pos)
+    # #         pancam.move_to(0, servo_x_max_pos)
     # #         time.sleep(1)
     # #         
-    # #         pancam.pan_to(0, servo_x_home_pos )
+    # #         pancam.move_to(0, servo_x_home_pos )
     # #         time.sleep(1)
     #         pos = servo_y_min_pos
     #         while(pos < servo_y_max_pos):
-    #             pancam.pan_to(1, pos)
+    #             pancam.move_to(1, pos)
     #             pos += 10
     #             
     #         while(pos > servo_y_min_pos):
-    #             pancam.pan_to(1, pos)
+    #             pancam.move_to(1, pos)
     #             pos -= 10
                 
         
@@ -78,22 +82,22 @@ pancam.set_y_servo(servo_y_id, servo_y_min_pos, servo_y_max_pos, servo_y_home_po
 #             #pancam.shutdown()
 #             runshell = False
 #         elif(line == "xhome\n"):
-#             pancam.pan_x_home()
+#             pancam.move_x_home()
 #         elif(line == "yhome\n"):
-#             pancam.pan_y_home()
+#             pancam.move_y_home()
 #         elif(line == "home\n"):
-#             pancam.pan_home()
+#             pancam.move_home()
 #         elif(line == "p r\n"):
-#             pancam.pan_right()
+#             pancam.move_right()
 #         elif(line == "p l\n"):
-#             pancam.pan_left()
+#             pancam.move_left()
 #         elif(line == "p u\n"):
-#             pancam.pan_up()
+#             pancam.move_up()
 #         elif(line == "p d\n"):
-#             pancam.pan_down()
+#             pancam.move_down()
 #         elif( matcher.match(line) ):
 #             servo_num, servo_pos = line.split(" ")
-#             pancam.pan_to(int(servo_num), int(servo_pos))
+#             pancam.move_to(int(servo_num), int(servo_pos))
 #         else:
 #             print("Malformed move command")
     
@@ -107,67 +111,153 @@ pancam.set_y_servo(servo_y_id, servo_y_min_pos, servo_y_max_pos, servo_y_home_po
 def root():
     return redirect("/pancam")
  
- 
 @app.route('/pancam')
 def home():
      
     #main ui
-     
-    #launch v4dl process. check first
-     
-    out = "hey"
-     
-    return out
+    return pancam_page     
+
+@app.route('/pancam/get_pos')
+def get_pos():
+    return get_movement_response({"xPos": pancam.get_x_pos(), "yPos": pancam.get_y_pos()})
+
  
 @app.route("/pancam/left")
-def pan_left():
-    pancam.pan_left()
- 
+def move_left():
+    
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    pancam.move_left()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+    
 @app.route("/pancam/right")
-def pan_right():
-    pancam.pan_right()
+def move_right():
+    
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    pancam.move_right()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
  
 @app.route("/pancam/up")
-def pan_up():
-    pancam.pan_up()
+def move_up():
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    pancam.move_up()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
+    
  
 @app.route("/pancam/down")
-def pan_down():
-    pancam.pan_down()
+def move_down():
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    pancam.move_down()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
  
-@app.route("/pancam/reset_y")
-def pan_y_home():
-    pancam.pan_y_home()
-     
-@app.route("/pancam/reset_x")
-def pan_x_home():
-    pancam.pan_x_home()
-     
-@app.route("/pancam/pan_to")
-def pan_to():
-    servo = request.args.get("servo")
-    position = request.args.get("position")
-     
-    if(servo == "x"):
-        pancam.pan_to(servo_x_id, int(position))
-    elif(servo == "y"):
-        pancam.pan_to(servo_y_id, int(position))
+@app.route("/pancam/move_y_home")
+def move_y_home():
     
-@app.route("/pancam/span_to", methods=['GET'])
-def span_to():
-    servo = request.args.get("servo")
-    position = request.args.get("position")
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
     
-    if(servo == "x"):
-        pancam.span_to(servo_x_id, int(position))
-    elif(servo == "y"):
-        pancam.span_to(servo_y_id, int(position))
-    else:
-        print("Unknown servo %s" % servo)
+    pancam.move_y_home()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
      
-@app.route("/pancam/reset")
+@app.route("/pancam/move_x_home")
+def move_x_home():
+    
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    pancam.move_x_home()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
+@app.route("/pancam/home")
 def pan_reset():
-    pancam.pan_home()
+        
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    pancam.move_home()
+    
+    return get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
+@app.route("/pancam/set_x_pan_inc")
+def set_x_pan_inc():
+    inc = int(request.args.get("inc"))
+    pancam.set_x_pan_inc(inc)
+    
+    return get_movement_response({"x_inc": inc})
+    
+@app.route("/pancam/set_y_pan_inc")
+def set_y_pan_inc():
+    inc = int(request.args.get("inc"))
+    pancam.set_y_pan_inc(inc)
+
+    return get_movement_response({"y_inc": inc})
+     
+@app.route("/pancam/move_to")
+def move_to():
+    newX = request.args.get("xPos")
+    newY = request.args.get("yPos")
+    
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    if(newX != ""):
+        pancam.move_to(0, int(newX))
+
+    if(newY != ""):
+        pancam.move_to(1, int(newY))
+        
+    response = get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
+    return response
+
+@app.route("/pancam/pan_to", methods=['GET'])
+def pan_to():
+    newX = request.args.get("xPos")
+    newY = request.args.get("yPos")
+    
+    oldx = pancam.get_x_pos()
+    oldy = pancam.get_y_pos()
+    
+    if(newX != ""):
+        pancam.pan_to(0, int(newX))
+
+    if(newY != ""):
+        pancam.pan_to(1, int(newY))
+        
+    response = get_movement_response({"oldX":oldx, "oldY":oldy, "newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
+    return response
+    
+@app.route("/pancam/stop", methods=['GET'])
+def stop():
+    pancam.move_home()
+    pancam.stop()
+    
+    return get_movement_response({"newX":pancam.get_x_pos(), "newY":pancam.get_y_pos() })
+
+    
+def get_movement_response(result):
+    return app.response_class(
+        response=json.dumps(result, sort_keys=True),
+        status=200,
+        mimetype='application/json'
+    )
     
 if __name__ == '__main__':
     # Bind to PORT if defined, otherwise default to 5000.
