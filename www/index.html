@@ -30,11 +30,47 @@ function updatePosition()
     });
 }
 
+function moveUpLeft()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/up_left",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
 function moveLeft()
 {
     $.ajax({
         type: "get",
         url: "/pancam/left",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveDownLeft()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/down_left",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveUpRight()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/up_right",
         dataType: 'json',
         async: false
     });
@@ -59,6 +95,18 @@ function moveDown()
     $.ajax({
         type: "get",
         url: "/pancam/down",
+        dataType: 'json',
+        async: false
+    });
+    
+    updatePosition();
+}
+
+function moveDownRight()
+{
+    $.ajax({
+        type: "get",
+        url: "/pancam/down_right",
         dataType: 'json',
         async: false
     });
@@ -149,10 +197,10 @@ $(document).ready(function() {
 	updatePosition();
 
     $(".widget button").button();
+    
     $("#moveUpLeft").click(
         function() {
-            moveLeft();
-            moveUp();
+            moveUpLeft();
         }
     );
     $("#moveUp").click(
@@ -162,8 +210,7 @@ $(document).ready(function() {
     );
     $("#moveUpRight").click(
         function() {
-            moveRight();
-            moveUp();
+            moveUpRight();
         }
     );
     $("#moveLeft").click(
@@ -183,8 +230,7 @@ $(document).ready(function() {
     );
     $("#moveDownLeft").click(
         function() {
-            moveLeft();
-            moveDown();
+            moveDownLeft();
         }
     );
     $("#moveDown").click(
@@ -194,8 +240,7 @@ $(document).ready(function() {
     );
     $("#moveDownRight").click(
         function() {
-            moveRight();
-            moveDown();
+            moveDownRight();
         }
     );
     
@@ -211,6 +256,12 @@ $(document).ready(function() {
             }
         );
 
+    $("#stop").click(
+            function() {
+				stop();
+            }
+        );
+    
     $("#xPanSlider").slider({
         value: 10,
         min: 10,
@@ -254,6 +305,50 @@ $(document).ready(function() {
         }
     });
     $("#yPanValue").html($('#yPanSlider').slider('value'));
+    
+    $("#xMoveSlider").slider({
+        value: 10,
+        min: 10,
+        max: 30,
+        step: 5,
+        slide: function(event, ui) {
+            $("#xMoveValue").html(ui.value);
+
+            //request to update move inc
+            $.ajax({
+        		type: "get",
+        		url: "/pancam/set_x_move_inc",
+        		data: {
+        			inc: ui.value
+        		},
+        		dataType: 'json',
+        		async: false
+            });
+        }
+    });
+    $("#xMoveValue").html($('#xMoveSlider').slider('value'));
+    
+    $("#yMoveSlider").slider({
+        value: 10,
+        min: 10,
+        max: 30,
+        step: 5,
+        slide: function(event, ui) {
+            $("#yMoveValue").html(ui.value);
+
+            //request to update move inc
+            $.ajax({
+        		type: "get",
+        		url: "/pancam/set_y_move_inc",
+        		data: {
+        			inc: ui.value
+        		},
+        		dataType: 'json',
+        		async: false
+            });
+        }
+    });
+    $("#yMoveValue").html($('#yMoveSlider').slider('value'));
 
     $("#viewType").selectmenu({
         change: function(event, ui) {
@@ -262,6 +357,7 @@ $(document).ready(function() {
                 $("#display").html('<img src="http://pancam:8080/?action=stream" />');
             } else if (optSelected == "v4l2-rtsp") {
                 window.open('rtsp://pancam:8554/unicast');
+                $("#display").html();
             } else {
                 //hide everything
                 $("#display").html();
@@ -346,6 +442,22 @@ $(document).ready(function() {
 						</td>
 					</tr>
 					<tr>
+						<td colspan="2" style="height: 50px; width: 100px">
+							<div id="xMoveSlider"></div>
+						</td>
+						<td style="height: 50px; width: 50px;">
+							<div id="xMoveValue" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" style="height: 50px; width: 100px">
+							<div id="yMoveSlider"></div>
+						</td>
+						<td style="height: 50px; width: 50px;">
+							<div id="yMoveValue" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
 						<td style="height: 50px; width: 50px" colspan="3"></td>
 					</tr>
 					<tr>
@@ -387,14 +499,5 @@ $(document).ready(function() {
 		</tr>
 
 	</table>
-
-
-
-
-
-
-
-
-
 </body>
 </html>

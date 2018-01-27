@@ -30,24 +30,24 @@ def main(sys):
     
     #     while (True):
     #         # Change speed of continuous servo on channel O
-    # #         pancam.move_to(0, servo_x_min_pos)
+    # #         pancam._move_to(0, servo_x_min_pos)
     # #         time.sleep(1)
     # #         
-    # #         pancam.move_to(0, servo_x_home_pos )
+    # #         pancam._move_to(0, servo_x_home_pos )
     # #         time.sleep(1)
     # #         
-    # #         pancam.move_to(0, servo_x_max_pos)
+    # #         pancam._move_to(0, servo_x_max_pos)
     # #         time.sleep(1)
     # #         
-    # #         pancam.move_to(0, servo_x_home_pos )
+    # #         pancam._move_to(0, servo_x_home_pos )
     # #         time.sleep(1)
     #         pos = servo_y_min_pos
     #         while(pos < servo_y_max_pos):
-    #             pancam.move_to(1, pos)
+    #             pancam._move_to(1, pos)
     #             pos += 10
     #             
     #         while(pos > servo_y_min_pos):
-    #             pancam.move_to(1, pos)
+    #             pancam._move_to(1, pos)
     #             pos -= 10
                 
         
@@ -79,7 +79,7 @@ def main(sys):
             pancam.move_down()
         elif( matcher.match(line) ):
             servo_num, servo_pos = line.split(" ")
-            pancam.move_to(int(servo_num), int(servo_pos))
+            pancam._move_to(int(servo_num), int(servo_pos))
         else:
             print("Malformed move command")
     
