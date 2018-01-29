@@ -81,6 +81,13 @@ def get_pos():
     (x,y) = pancam.get_pos()
     return get_movement_response({"xPos": x, "yPos": y})
 
+@app.route('/pancam/get_status')
+def get_status():
+    
+    (x,y) = pancam.get_pos()
+    (xMove, yMove) = pancam.get_move_incs()
+    (xPan, yPan) = pancam.get_pan_incs()
+    return get_movement_response({"xPos": x, "yPos": y, "xPan": xPan, "yPan": yPan, "xMove": xMove, "yMove": yMove})
  
 @app.route("/pancam/up_left")
 def move_up_left():
