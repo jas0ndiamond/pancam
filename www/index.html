@@ -12,20 +12,25 @@
 
 <script type="text/javascript">
 
-function updatePosition()
+function updateStatus()
 {
     $.ajax({
         type: "get",
-        url: "/pancam/get_pos",
+        url: "/pancam/get_status",
         dataType: 'json',
-        async: false,
+        async: true,
         success: function(data) {
+        	console.log(data)
             $("#xPos").html(data["xPos"]);
             $("#yPos").html(data["yPos"]);
+            $("#xPanValue").html(data["xPan"]);
+            $("#yPanValue").html(data["yPan"]);
+            $("#xMoveValue").html(data["xMove"]);
+            $("#yMoveValue").html(data["yMove"]);
 
         },
         error: function() {
-            alert("Error loading camera position");
+            //alert("Error loading camera position");
         }
     });
 }
@@ -38,8 +43,6 @@ function moveUpLeft()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveLeft()
@@ -50,8 +53,6 @@ function moveLeft()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveDownLeft()
@@ -62,8 +63,6 @@ function moveDownLeft()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveUpRight()
@@ -74,8 +73,6 @@ function moveUpRight()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveRight()
@@ -86,8 +83,6 @@ function moveRight()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveDown()
@@ -98,8 +93,6 @@ function moveDown()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveDownRight()
@@ -110,8 +103,6 @@ function moveDownRight()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveUp()
@@ -122,8 +113,6 @@ function moveUp()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function moveHome()
@@ -134,8 +123,6 @@ function moveHome()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 function panTo()
@@ -150,8 +137,6 @@ function panTo()
 		},
         async: false
     });
-    
-    updatePosition();
     
     $("#newX").val('');
     $("#newY").val('');
@@ -170,8 +155,6 @@ function moveTo()
         async: false
     });
     
-    updatePosition();
-    
     $("#newX").val('');
     $("#newY").val('');
 }
@@ -184,8 +167,6 @@ function stop()
         dataType: 'json',
         async: false
     });
-    
-    updatePosition();
 }
 
 //---------------------------------------------------------------------------------------------
@@ -194,9 +175,9 @@ $(document).ready(function() {
 
     //grab current x and y and update
 
-	updatePosition();
+	updateStatus();
 
-    $(".widget button").button();
+    $(":button").button();
     
     $("#moveUpLeft").click(
         function() {
@@ -262,11 +243,12 @@ $(document).ready(function() {
             }
         );
     
+   //get pan incs to set sliders
+    
     $("#xPanSlider").slider({
-        value: 10,
-        min: 10,
+        min: 1,
         max: 30,
-        step: 5,
+        step: 1,
         slide: function(event, ui) {
             $("#xPanValue").html(ui.value);
 
@@ -282,13 +264,12 @@ $(document).ready(function() {
             });
         }
     });
-    $("#xPanValue").html($('#xPanSlider').slider('value'));
+    //$("#xPanValue").html($('#xPanSlider').slider('value'));
     
     $("#yPanSlider").slider({
-        value: 10,
-        min: 10,
+        min: 1,
         max: 30,
-        step: 5,
+        step: 1,
         slide: function(event, ui) {
             $("#yPanValue").html(ui.value);
 
@@ -304,13 +285,14 @@ $(document).ready(function() {
             });
         }
     });
-    $("#yPanValue").html($('#yPanSlider').slider('value'));
+    //$("#yPanValue").html($('#yPanSlider').slider('value'));
+    
+    //get move incs to set sliders
     
     $("#xMoveSlider").slider({
-        value: 10,
         min: 10,
         max: 30,
-        step: 5,
+        step: 1,
         slide: function(event, ui) {
             $("#xMoveValue").html(ui.value);
 
@@ -326,13 +308,12 @@ $(document).ready(function() {
             });
         }
     });
-    $("#xMoveValue").html($('#xMoveSlider').slider('value'));
+    //$("#xMoveValue").html($('#xMoveSlider').slider('value'));
     
     $("#yMoveSlider").slider({
-        value: 10,
         min: 10,
         max: 30,
-        step: 5,
+        step: 1,
         slide: function(event, ui) {
             $("#yMoveValue").html(ui.value);
 
@@ -348,7 +329,7 @@ $(document).ready(function() {
             });
         }
     });
-    $("#yMoveValue").html($('#yMoveSlider').slider('value'));
+    //$("#yMoveValue").html($('#yMoveSlider').slider('value'));
 
     $("#viewType").selectmenu({
         change: function(event, ui) {
@@ -364,19 +345,23 @@ $(document).ready(function() {
             }
         }
     });
-
+	
+    function updater() 
+    { 
+    	setInterval(  function(){updateStatus();} , 1000);
+	}
+    
+    updater();
 });
 
 
     </script>
 
 <body>
-	<table style="width: 800px;" border="5">
-
+	<table style="width: 1200px;" border="5">
 		<tr>
-			<td id="controlPanel" style="width: 150px; vertical-align: text-top">
-
-				<table style="width: 150px;" border="1">
+			<td id="controlPanel" style="width: 210px; vertical-align: text-top">
+				<table style="width: 100%" border="1">
 					<tr>
 						<td style="height: 50px; width: 50px">
 							<div style="text-align: center;">Pos:</div>
@@ -389,85 +374,101 @@ $(document).ready(function() {
 						</td>
 					</tr>
 					<tr>
-						<td style="height: 50px; width: 50px" colspan="3"></td>
-					</tr>
-					<tr>
 						<td>
-							<button id="moveUpLeft" style="height: 50px; width: 50px">&#x25E4;</button>
+							<button id="moveUpLeft" style="height: 75px; width: 75px">&#x25E4;</button>
 						</td>
 						<td>
-							<button id="moveUp" style="height: 50px; width: 50px">&#x25B2;</button>
+							<button id="moveUp" style="height: 75px; width: 75px">&#x25B2;</button>
 						</td>
 						<td>
-							<button id="moveUpRight" style="height: 50px; width: 50px">&#x25E5;</button>
-						</td>
-					</tr>
-					<tr>
-						<td>
-							<button id="moveLeft" style="height: 50px; width: 50px">
-								&#x25C0;</button>
-						</td>
-						<td>
-							<button id="moveHome" style="height: 50px; width: 50px">&#x25A0;</button>
-						</td>
-						<td>
-							<button id="moveRight" style="height: 50px; width: 50px">&#x25B6;</button>
+							<button id="moveUpRight" style="height: 75px; width: 75px">&#x25E5;</button>
 						</td>
 					</tr>
 					<tr>
 						<td>
-							<button id="moveDownLeft" style="height: 50px; width: 50px">&#x25E3;</button>
+							<button id="moveLeft" style="height: 75px; width: 75px">&#x25C0;</button>
 						</td>
 						<td>
-							<button id="moveDown" style="height: 50px; width: 50px">&#x25BC;</button>
+							<button id="moveHome" style="height: 75px; width: 75px">&#x25A0;</button>
 						</td>
 						<td>
-							<button id="moveDownRight" style="height: 50px; width: 50px">&#x25E2;</button>
+							<button id="moveRight" style="height: 75px; width: 75px">&#x25B6;</button>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="2" style="height: 50px; width: 100px">
-							<div id="xPanSlider"></div>
+						<td>
+							<button id="moveDownLeft" style="height: 75px; width: 75px">&#x25E3;</button>
 						</td>
-						<td style="height: 50px; width: 50px;">
-							<div id="xPanValue" style="text-align: center;"></div>
+						<td>
+							<button id="moveDown" style="height: 75px; width: 75px">&#x25BC;</button>
 						</td>
-					</tr>
-					<tr>
-						<td colspan="2" style="height: 50px; width: 100px">
-							<div id="yPanSlider"></div>
-						</td>
-						<td style="height: 50px; width: 50px;">
-							<div id="yPanValue" style="text-align: center;"></div>
+						<td>
+							<button id="moveDownRight" style="height: 75px; width: 75px">&#x25E2;</button>
 						</td>
 					</tr>
+				</table>
+				<table style="width: 100%;" border="1">
 					<tr>
-						<td colspan="2" style="height: 50px; width: 100px">
+						<td style="height: 50px; width: 75px;">
+							<div id="xMoveLabel" style="text-align: center;">xMove</div>
+						</td>
+						<td style="height: 50px; width: 125px">
 							<div id="xMoveSlider"></div>
 						</td>
-						<td style="height: 50px; width: 50px;">
+						<td style="height: 50px; width: 35px;">
 							<div id="xMoveValue" style="text-align: center;"></div>
 						</td>
 					</tr>
 					<tr>
-						<td colspan="2" style="height: 50px; width: 100px">
+						<td style="height: 50px; width: 75px;">
+							<div id="yMoveLabel" style="text-align: center;">yMove</div>
+						</td>
+						<td style="height: 50px; width: 125px">
 							<div id="yMoveSlider"></div>
 						</td>
-						<td style="height: 50px; width: 50px;">
+						<td style="height: 50px; width: 35px;">
 							<div id="yMoveValue" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td style="height: 50px; width: 75px;">
+							<div id="xPanLabel" style="text-align: center;">xPan</div>
+						</td>
+						<td style="height: 50px; width: 125px">
+							<div id="xPanSlider"></div>
+						</td>
+						<td style="height: 50px; width: 35px;">
+							<div id="xPanValue" style="text-align: center;"></div>
+						</td>
+					</tr>
+					<tr>
+						<td style="height: 50px; width: 75px;">
+							<div id="yPanLabel" style="text-align: center;">yPan</div>
+						</td>
+						<td style="height: 50px; width: 125px">
+							<div id="yPanSlider"></div>
+						</td>
+						<td style="height: 50px; width: 35px;">
+							<div id="yPanValue" style="text-align: center;"></div>
 						</td>
 					</tr>
 					<tr>
 						<td style="height: 50px; width: 50px" colspan="3"></td>
 					</tr>
+				</table>
+				<table style="width: 210px;" border="1">
 					<tr>
 						<td colspan="3" style="height: 50px; width: 150px">
-							<table style="height: 50px; width: 150px;" border="1">
+							<table style="height: 50px; width: 100%" border="1">
 								<tr>
-									<td style="height: 50px; width: 75px;"><label for="newX">X:</label>
-										<input id="newX" style="width: 35px;"></td>
-									<td style="height: 50px; width: 75px;"><label for="newX">Y:</label>
-										<input id="newY" style="width: 35px;"></td>
+									<td style="height: 50px; width: 75px;">
+										<label for="newX">X:</label>
+										<input id="newX" style="width: 70px; text-align: center">
+									</td>
+									<td style="height: 50px; width: 75px;">
+										<label for="newX">Y:</label>
+										<input id="newY" style="width: 70px; text-align: center">
+									</td>
 								</tr>
 							</table>
 						</td>
@@ -475,27 +476,27 @@ $(document).ready(function() {
 					</tr>
 					<tr>
 						<td>
-							<button id="panTo" style="height: 50px; width: 50px">Pan</button>
+							<button id="panTo" style="height: 50px; width: 75px; text-align:center">Pan</button>
 						</td>
 						<td>
-							<button id="moveTo" style="height: 50px; width: 50px">Move</button>
+							<button id="moveTo" style="height: 50px; width: 75px; text-align:center">Move</button>
 						</td>
 						<td>
-							<button id="stop" style="height: 50px; width: 50px">Stop</button>
+							<button id="stop" style="height: 50px; width: 75px; align:center">Stop</button>
 						</td>
 					</tr>
 				</table>
 
-
-
 			</td>
-			<td id="displayPanel" border="1"><select id="viewType">
-					<option disabled selected>Choose</option>
+			<td id="displayPanel" style="width: 990px;" align="left" valign= "top">
+				<select id="viewType">
+					<option disabled selected>Choose View</option>
 					<option>mjpeg-streamer</option>
 					<option>v4l2-rtsp</option>
 					<option>none</option>
-			</select>
-				<div id="display" style="width: 640px; height: 480px"></div></td>
+				</select>
+				<div id="display" style="width: 640px; height: 480px;"></div>
+			</td>
 		</tr>
 
 	</table>
