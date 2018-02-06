@@ -9,14 +9,18 @@ import signal
 
 from Pancam import Pancam
 
-app = Flask(__name__, static_url_path='/www', static_folder=os.path.dirname(__file__) + "/www")
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+root_dir = os.path.dirname(os.path.realpath(__file__))
+
+app = Flask(__name__, static_url_path='/www', static_folder=root_dir + "/www")
+
+
+
 logger.info("Pancam starting up...")
 
-conf_file = os.path.dirname(__file__) + "/conf/config.json"    
+conf_file = root_dir + "/conf/config.json"
     
 if(len(sys.argv) == 2):
     conf_file = sys.argv[1]
@@ -26,12 +30,13 @@ logger.info("Loading config from: %s", conf_file)
 json_data=open(conf_file).read()
 
 data = json.loads(json_data)
-#print(data)
     
+
+
+pancam_page = open(root_dir + "/www/index.html").read()
+
 hat_addr = data["hat_addr"]
 pwm_freq = data["pwm_freq"]
-
-pancam_page = open(os.path.dirname(__file__) + "/www/index.html").read()
 
 #x
 #min -> left
@@ -77,7 +82,6 @@ def home():
 
 @app.route('/pancam/get_pos')
 def get_pos():
-    
     (x,y) = pancam.get_pos()
     return get_movement_response({"xPos": x, "yPos": y})
 
@@ -91,78 +95,51 @@ def get_status():
  
 @app.route("/pancam/up_left")
 def move_up_left():
-    pancam.move_up_left()
-    
-    return get_response()
+    return get_movement_response( {"action": "move up left", "result": pancam.move_up_left() })
     
  
 @app.route("/pancam/left")
 def move_left():
-    pancam.move_left()
-    
-    return get_response()
+    return get_movement_response( {"action": "move left", "result": pancam.move_left() })
     
 @app.route("/pancam/down_left")
 def move_down_left():
-    pancam.move_down_left()
-    
-    return get_response()
+    return get_movement_response({"action": "move down left", "result": pancam.move_down_left() })
     
 
 @app.route("/pancam/up_right")
 def move_up_right():
-    pancam.move_up_right()
-
-    return get_response()
+    return get_movement_response({"action": "move up right", "result": pancam.move_up_right() })
  
   
 @app.route("/pancam/right")
 def move_right():
-   
-    pancam.move_right()
-    
-    return get_response()
+    return get_movement_response({"action": "move right", "result": pancam.move_right() })
  
 @app.route("/pancam/down_right")
 def move_down_right():
-    
-    pancam.move_down_right()
-    
-    return get_response()
- 
+    return get_movement_response({"action": "move down right", "result": pancam.move_down_right()})
  
 @app.route("/pancam/up")
 def move_up():
-    
-    pancam.move_up()
-
-    return get_response()    
+    return get_movement_response({"action": "move up", "result": pancam.move_up() })    
  
 @app.route("/pancam/down")
 def move_down():   
-    pancam.move_down()
-    
-    return get_response()
+    return get_movement_response({"action": "move down", "result": pancam.move_down() })
 
  
 @app.route("/pancam/move_y_home")
 def move_y_home():
-    pancam.move_y_home()
-    
-    return get_response()
+    return get_movement_response({"action": "move y home", "result": pancam.move_y_home() })
      
 @app.route("/pancam/move_x_home")
 def move_x_home():
-    pancam.move_x_home()
-    
-    return get_response()
+    return get_movement_response({"action": "move y home", "result": pancam.move_x_home() })
 
 @app.route("/pancam/home")
-def move_home():
-    
-    pancam.move_home()
-    
-    return get_response()
+def move_home():   
+    return get_movement_response({"action": "move home", "result": pancam.move_home() })
 
 @app.route("/pancam/set_x_pan_inc")
 def set_x_pan_inc():

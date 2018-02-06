@@ -48,7 +48,7 @@ class Pancam:
         
         self.job_running = False
         
-        self.work_queue_max_size = 50
+        self.work_queue_max_size = 10
         self.work_queue = Queue.Queue(maxsize=self.work_queue_max_size)
         self.work_queue.mutex = threading.Lock()
                 
@@ -56,16 +56,19 @@ class Pancam:
         self.queueMgr.start()
 
     def add_work(self, thread):
+        retval = False
         if(self.running):
             self.work_queue.put(thread)
+            retval = True
         else:
             self.logger.warn("Ignoring new work- shutdown in progress")
+        return retval
     
     def manage_work_queue(self):
         while self.running:
             if(self.work_queue.empty()):
-                self.logger.debug("waiting for moves")
-                time.sleep(.25) 
+                #self.logger.debug("waiting for moves")
+                time.sleep(.15) 
             else:
                 self.logger.debug("Dequeuing move operation")
                     
@@ -93,60 +96,73 @@ class Pancam:
         self.logger.info("Exiting manage_work_queue")
 
     def set_x_move_inc(self, inc):
+        retval = False
         if(inc > self.min_move_inc and inc < self.max_move_inc):
             if(self.work_queue.empty()):
                 try:
                     self.work_queue.mutex.acquire()
                     self.move_x_inc = inc
                     self.logger.info("Set X move inc to %i" % inc)
+                    retval = True
                 finally:
                     self.work_queue.mutex.release()
             else:
                 self.logger.error("Skipping change of x move inc: work queue is not empty or work is in progress")
         else:
             self.logger.error("Error setting X move inc: Invalid value")
+        
+        return retval
 
     def set_y_move_inc(self, inc):
+        retval = False
         if(inc > self.min_move_inc and inc < self.max_move_inc):
             if(self.work_queue.empty() and self.job_running == False):
                 try:
                     self.work_queue.mutex.acquire()
                     self.move_y_inc = inc
                     self.logger.info("Set Y move inc to %i" % inc)
+                    retval = True
                 finally:
                     self.work_queue.mutex.release()
             else:
                 self.logger.error("Skipping change of y move inc: work queue is not empty or work is in progress")
         else:
             self.logger.error("Error setting Y move inc: Invalid value")
+        return retval
     
     def set_x_pan_inc(self, inc):
+        retval = False
         if(inc > self.min_pan_inc and inc < self.max_pan_inc):
             if(self.work_queue.empty() and self.job_running == False):
                 try:
                     self.work_queue.mutex.acquire()
                     self.pan_x_inc = inc
                     self.logger.info("Set X pan inc to %i" % inc)
+                    retval = True
                 finally:
                     self.work_queue.mutex.release()
             else:
                 self.logger.error("Skipping change of X pan inc: work queue is not empty or work is in progress")
         else:
             self.logger.error("Error setting X pan inc: Invalid value")
+        return retval
 
     def set_y_pan_inc(self, inc):
+        retval = False
         if(inc > self.min_pan_inc and inc < self.max_pan_inc):
             if(self.work_queue.empty() and self.job_running == False):
                 try:
                     self.work_queue.mutex.acquire()
                     self.pan_y_inc = inc
                     self.logger.info("Set Y pan inc to %i" % inc)
+                    retval = True
                 finally:
                     self.work_queue.mutex.release()
             else:
                 self.logger.error("Skipping change of Y pan inc: work queue is not empty or work is in progress")
         else:
             self.logger.error("Error setting Y pan inc: Invalid value")
+        return retval
 
     def move_x_home(self):
         self.add_work(Thread(target=self._move_to, 
@@ -177,16 +193,16 @@ class Pancam:
             self._move_to(self.servo_y_num, my_y - my_move_y)
 
     
-        self.add_work(Thread(target=my_move))
+        return self.add_work(Thread(target=my_move))
         
     def move_left(self):
         def my_move():
             my_x = self._get_pos()[0]
-            my_move_x = self._get_move_incs()[1]
+            my_move_x = self._get_move_incs()[0]
             
             self._move_to(self.servo_x_num, my_x - my_move_x)
         
-        self.add_work(Thread(target=my_move))    
+        return self.add_work(Thread(target=my_move))    
 
     def move_down_left(self):
         
@@ -214,7 +230,7 @@ class Pancam:
             self._move_to(self.servo_y_num, my_y - my_move_y)
 
     
-        self.add_work(Thread(target=my_move))
+        return self.add_work(Thread(target=my_move))
 
     def move_right(self):
         
@@ -224,7 +240,7 @@ class Pancam:
             
             self._move_to(self.servo_x_num, my_x + my_move_x)
         
-        self.add_work(Thread(target=my_move))     
+        return self.add_work(Thread(target=my_move))     
     
     def move_down_right(self):
         
@@ -237,7 +253,7 @@ class Pancam:
             self._move_to(self.servo_y_num, my_y + my_move_y)
 
     
-        self.add_work(Thread(target=my_move))
+        return self.add_work(Thread(target=my_move))
         
     def move_up(self):
 
@@ -247,7 +263,7 @@ class Pancam:
             
             self._move_to(self.servo_y_num, my_y - my_move_y)
 
-        self.add_work(Thread(target=my_move))
+        return self.add_work(Thread(target=my_move))
 
     def move_down(self):
         def my_move():
@@ -256,7 +272,7 @@ class Pancam:
             
             self._move_to(self.servo_y_num, my_y + my_move_y)
 
-        self.add_work(Thread(target=my_move))
+        return self.add_work(Thread(target=my_move))
     
     def _move_to(self, servo_num, position):      
         
@@ -309,12 +325,12 @@ class Pancam:
     def pan_to_by_increment(self, servo_num, position, increment):
         def my_move(servo_num, position, increment):
             
-            my_x, my_y = self._get_pos()
+            (my_x, my_y) = self._get_pos()
                    
             if(servo_num == self.servo_x_num):
                 if(my_x > position):
                     #moving left, negative
-                    while(self.my_x > position):
+                    while(my_x > position):
                         self._move_to(servo_num, my_x - increment)
                         my_x = self._get_pos()[0]
                         #want to arrive at min, then break the loop
@@ -352,7 +368,7 @@ class Pancam:
                 self.logger.error("Unknown servo %i" % servo_num)   
             
             
-        self.add_work(Thread(target=my_move, 
+        return self.add_work(Thread(target=my_move, 
                args=(servo_num, position, increment))) 
 
     def pan_to(self, servo_num, position):
@@ -448,8 +464,6 @@ class Pancam:
         #this should leapfrog the work queue to determine where the servo is between moves
         try:
             self.work_queue.mutex.acquire()
-        #prevent moves from occuring
-        #with self.work_queue.mutex:
             x,y = self._get_pos()
         finally:
             self.work_queue.mutex.release()
